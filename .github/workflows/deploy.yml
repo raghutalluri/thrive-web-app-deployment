@@ -22,20 +22,14 @@ jobs:
         with:
           instance-ids: "tag:Deployment=hello-world-app"
           aws-region: us-east-2
-          command: |
-            cd /home/ec2-user/app
-            aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPO_URL }}
-            echo "version: '3.7'
-            services:
-              web:
-                image: ${{ secrets.AWS_ECR_REPO_URL }}:latest
-                ports:
-                  - '3000:3000'
-                healthcheck:
-                  test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-                  interval: 30s
-                  timeout: 10s
-                  retries: 3
-            " > docker-compose.yml
-            sudo /usr/local/bin/docker-compose pull
-            sudo /usr/local/bin/docker-compose up -d --force-recreate
+          document-name: "AWS-RunShellScript"
+          parameters: >
+            {
+              "commands": [
+                "cd /home/ec2-user/app",
+                "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPO_URL }}",
+                "echo \"version: '3.7'\nservices:\n  web:\n    image: ${{ secrets.AWS_ECR_REPO_URL }}:latest\n    ports:\n      - '3000:3000'\n    healthcheck:\n      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\" > docker-compose.yml",
+                "sudo /usr/local/bin/docker-compose pull",
+                "sudo /usr/local/bin/docker-compose up -d --force-recreate"
+              ]
+            }
