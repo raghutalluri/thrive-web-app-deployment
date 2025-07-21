@@ -18,7 +18,7 @@ jobs:
           aws-region: us-east-2
 
       - name: Execute deployment script on EC2 instances
-        uses: aws-actions/aws-ssm-send-command@v1
+        uses: nohmad/aws-ssm-send-command-action@master
         with:
           instance-ids: "tag:Deployment=hello-world-app"
           command: |
