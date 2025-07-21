@@ -20,10 +20,10 @@ jobs:
       - name: Execute deployment script on EC2 instances
         uses: nohmad/aws-ssm-send-command-action@master
         with:
-          instance-ids: "tag:Deployment=hello-world-app"
+          targets: '[{"Key":"tag:Deployment","Values":["hello-world-app"]}]'
           aws-region: us-east-2
           document-name: "AWS-RunShellScript"
-          parameters: >
+          parameters: |
             {
               "commands": [
                 "cd /home/ec2-user/app",
