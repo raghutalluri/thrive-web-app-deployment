@@ -1,0 +1,21 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # The first stage: call the reusable build workflow
+  build:
+    name: Build Stage
+    uses: ./.github/workflows/build.yml
+    # This ensures the reusable workflow can access the repository's secrets
+    secrets: inherit
+
+  # The second stage: call the reusable deploy workflow
+  deploy:
+    name: Deploy Stage
+    # This job will only run after the 'build' job succeeds
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

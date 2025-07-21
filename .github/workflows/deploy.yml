@@ -1,0 +1,40 @@
+name: Reusable - Deploy to EC2
+
+# This workflow is triggered when called by another workflow
+on:
+  workflow_call:
+
+jobs:
+  deploy-to-ec2:
+    name: Deploy to EC2 Instances
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Execute deployment script on EC2 instances
+        uses: aws-actions/aws-ssm-send-command@v1
+        with:
+          instance-ids: "tag:Deployment=hello-world-app"
+          command: |
+            cd /home/ec2-user/app
+            aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPO_URL }}
+            echo "version: '3.7'
+            services:
+              web:
+                image: ${{ secrets.AWS_ECR_REPO_URL }}:latest
+                ports:
+                  - '3000:3000'
+                healthcheck:
+                  test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 3
+            " > docker-compose.yml
+            sudo /usr/local/bin/docker-compose pull
+            sudo /usr/local/bin/docker-compose up -d --force-recreate
