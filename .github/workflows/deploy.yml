@@ -21,6 +21,7 @@ jobs:
         uses: nohmad/aws-ssm-send-command-action@master
         with:
           instance-ids: "tag:Deployment=hello-world-app"
+          aws-region: us-east-2
           command: |
             cd /home/ec2-user/app
             aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPO_URL }}
