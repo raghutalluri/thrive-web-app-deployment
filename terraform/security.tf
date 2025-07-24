@@ -41,6 +41,14 @@ resource "aws_security_group" "ec2_sg" {
     description = "Allow HTTP traffic from ALB"
   }
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = data.aws_ip_ranges.ec2_instance_connect.cidr_blocks
+    description = "Allow SSH from EC2 Instance Connect"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -52,3 +60,12 @@ resource "aws_security_group" "ec2_sg" {
     Name = "thrive-web-app-ec2-sg"
   }
 }
+
+
+# Data source to get the IP ranges for the EC2 Instance Connect service
+data "aws_ip_ranges" "ec2_instance_connect" {
+  regions  = [data.aws_region.current.name]
+  services = ["EC2_INSTANCE_CONNECT"]
+}
+
+data "aws_region" "current" {}

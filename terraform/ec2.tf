@@ -4,6 +4,8 @@ resource "aws_launch_template" "app_template" {
   name_prefix   = "thrive-app-template-"
   image_id      = "ami-0370248b8ebbb99af" # Verified Amazon Linux 2 AMI for us-east-2
   instance_type = "t3.micro"
+
+  key_name      = "thrive-key"
   iam_instance_profile {
     name = aws_iam_instance_profile.ec2_profile.name
   }
@@ -17,6 +19,7 @@ resource "aws_launch_template" "app_template" {
     package_update: true
     packages:
       - docker
+      - ec2-instance-connect
     runcmd:
       - set -x
       - service docker start
