@@ -23,7 +23,7 @@ jobs:
           INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups \
             --auto-scaling-group-names thrive-app-asg \
             --query "AutoScalingGroups[0].Instances[?HealthStatus=='Healthy'].InstanceId" \
-            --output text)
+            --output text | tr '\t' ' ')
           echo "INSTANCE_IDS=$INSTANCE_IDS" >> $GITHUB_ENV
 
       - name: Wait for SSM agent.
