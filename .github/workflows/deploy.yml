@@ -29,7 +29,7 @@ jobs:
       - name: Wait for SSM agent.
         if: env.INSTANCE_IDS != '' # Only run if we found healthy instances
         run: |
-          echo "Waiting for 60 seconds for the SSM agent to be installed and running."
+          echo "Waiting for 120 seconds for the SSM agent to be installed and running."
           sleep 60
 
       # Step 2: Use the AWS CLI directly to send the deployment command.
