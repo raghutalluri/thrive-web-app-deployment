@@ -32,13 +32,13 @@ jobs:
           echo "Waiting for SSM agents on instances: ${{ env.INSTANCE_IDS }}"
           for instance_id in ${{ env.INSTANCE_IDS }}; do
             echo "Checking status for $instance_id..."
-            for i in {1..30}; do
+            for i in {1..60}; do
               STATUS=$(aws ssm describe-instance-information --filters "Key=InstanceIds,Values=$instance_id" --query "InstanceInformationList[0].PingStatus" --output text || echo "Error")
               if [ "$STATUS" == "Online" ]; then
                 echo "$instance_id is online."
                 break
               else
-                echo "$instance_id is not online yet (Status: $STATUS). Waiting... ($i/30)"
+                echo "$instance_id is not online yet (Status: $STATUS). Waiting... ($i/60)"
                 sleep 10
               fi
             done
