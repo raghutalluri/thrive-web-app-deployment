@@ -61,14 +61,15 @@ jobs:
             --instance-ids ${{ env.INSTANCE_IDS }} \
             --parameters '{
               "commands": [
-                "cd /home/ec2-user/app",
-                "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }} && echo \"Login successful\" || echo \"Login failed\"",
-                "echo \"version: '3.7'\\nservices:\\n  web:\\n    image: \\'${{ secrets.ECR_REPOSITORY_URL }}:latest\\'\\n    ports:\\n      - \\'3000:3000\\'\\n    healthcheck:\\n      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\\n      interval: 30s\\n      timeout: 10s\\n      retries: 3\" > docker-compose.yml",
-                "sudo docker rmi ${{ secrets.ECR_REPOSITORY_URL }}:latest || true",
-                "sudo /usr/local/bin/docker-compose pull",
-                "sudo /usr/local/bin/docker-compose up -d --force-recreate --build --pull",
-                "echo \"Docker images with :latest tag:\"",
-                "sudo docker images --format \\\"{{.Repository}}:{{.Tag}} created {{.CreatedSince}}\\\" | grep :latest"
+              "mkdir -p /home/ec2-user/app",
+              "cd /home/ec2-user/app",
+              "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }} && echo \"Login successful\" || echo \"Login failed\"",
+              "cat <<EOF > docker-compose.yml\nversion: '3.7'\nservices:\n  web:\n    image: '${{ secrets.ECR_REPOSITORY_URL }}:latest'\n    ports:\n      - '3000:3000'\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\nEOF",
+              "sudo docker rmi ${{ secrets.ECR_REPOSITORY_URL }}:latest || true",
+              "sudo /usr/local/bin/docker-compose pull",
+              "sudo /usr/local/bin/docker-compose up -d --force-recreate",
+              "echo \"Docker images with :latest tag:\"",
+              "sudo docker images --format '{{.Repository}}:{{.Tag}} created {{.CreatedSince}}' | grep :latest"
               ]
             }' \
             --query 'Command.CommandId' --output text)
