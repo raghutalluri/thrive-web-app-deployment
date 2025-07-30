@@ -67,6 +67,6 @@ jobs:
                 "sudo /usr/local/bin/docker-compose pull",
                 "sudo /usr/local/bin/docker-compose up -d --force-recreate --build --pull",
                 "echo \"Docker images with :latest tag:\"",
-                "sudo docker images --format '\\'{{.Repository}}:{{.Tag}} created {{.CreatedSince}}\\'' | grep :latest"
+                "sudo docker images --format \\\"{{.Repository}}:{{.Tag}} created {{.CreatedSince}}\\\" | grep :latest"
               ]
             }'
