@@ -53,20 +53,43 @@ jobs:
 
       # Step 2: Use the AWS CLI directly to send the deployment command.
       - name: Execute deployment script on EC2 instances via AWS CLI
-        if: env.INSTANCE_IDS != '' # Only run if we found healthy instances
+        if: env.INSTANCE_IDS != ''
+        id: ssm_command
         run: |
-          aws ssm send-command \
+          COMMAND_ID=$(aws ssm send-command \
             --document-name "AWS-RunShellScript" \
             --instance-ids ${{ env.INSTANCE_IDS }} \
             --parameters '{
               "commands": [
                 "cd /home/ec2-user/app",
                 "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }} && echo \"Login successful\" || echo \"Login failed\"",
-                "echo \"version: '3.7'\\nservices:\\n  web:\\n    image: '${{ secrets.ECR_REPOSITORY_URL }}:latest'\\n    ports:\\n      - '3000:3000'\\n    healthcheck:\\n      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\\n      interval: 30s\\n      timeout: 10s\\n      retries: 3\" > docker-compose.yml",
+                "echo \"version: '3.7'\\nservices:\\n  web:\\n    image: \\'${{ secrets.ECR_REPOSITORY_URL }}:latest\\'\\n    ports:\\n      - \\'3000:3000\\'\\n    healthcheck:\\n      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\\n      interval: 30s\\n      timeout: 10s\\n      retries: 3\" > docker-compose.yml",
                 "sudo docker rmi ${{ secrets.ECR_REPOSITORY_URL }}:latest || true",
                 "sudo /usr/local/bin/docker-compose pull",
                 "sudo /usr/local/bin/docker-compose up -d --force-recreate --build --pull",
                 "echo \"Docker images with :latest tag:\"",
                 "sudo docker images --format \\\"{{.Repository}}:{{.Tag}} created {{.CreatedSince}}\\\" | grep :latest"
               ]
-            }'
+            }' \
+            --query 'Command.CommandId' --output text)
+          echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
+
+      - name: Fetch and show SSM Run Command output
+        if: env.INSTANCE_IDS != '' && env.COMMAND_ID != ''
+        run: |
+          for instance_id in ${{ env.INSTANCE_IDS }}; do
+            # Wait for command to finish
+            while true; do
+              STATUS=$(aws ssm get-command-invocation --instance-id "$instance_id" --command-id "${{ env.COMMAND_ID }}" --query 'Status' --output text)
+              echo "Status for $instance_id: $STATUS"
+              if [[ "$STATUS" == "Success" || "$STATUS" == "Failed" || "$STATUS" == "Cancelled" || "$STATUS" == "TimedOut" ]]; then
+                break
+              fi
+              sleep 5
+            done
+            # Fetch and print output
+            echo "::group::Output for $instance_id"
+            aws ssm get-command-invocation --instance-id "$instance_id" --command-id "${{ env.COMMAND_ID }}" --query 'StandardOutputContent' --output text
+            aws ssm get-command-invocation --instance-id "$instance_id" --command-id "${{ env.COMMAND_ID }}" --query 'StandardErrorContent' --output text
+            echo "::endgroup::"
+          done
