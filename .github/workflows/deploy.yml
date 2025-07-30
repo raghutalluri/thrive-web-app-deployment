@@ -61,8 +61,8 @@ jobs:
             --parameters '{
               "commands":[
                 "cd /home/ec2-user/app",
-                "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REPO_URL }}",
-                "echo \"version: ''3.7''\\nservices:\\n  web:\\n    image: ${{ secrets.AWS_ECR_REPO_URL }}:latest\\n    ports:\\n      - ''3000:3000''\\n    healthcheck:\\n      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\\n      interval: 30s\\n      timeout: 10s\\n      retries: 3\" > docker-compose.yml",
+                "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_URL }}",
+                "echo \"version: ''3.7''\\nservices:\\n  web:\\n    image: ${{ secrets.ECR_REPO_URL }}:latest\\n    ports:\\n      - ''3000:3000''\\n    healthcheck:\\n      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\\n      interval: 30s\\n      timeout: 10s\\n      retries: 3\" > docker-compose.yml",
                 "sudo /usr/local/bin/docker-compose pull",
                 "sudo /usr/local/bin/docker-compose up -d --force-recreate"
               ]
