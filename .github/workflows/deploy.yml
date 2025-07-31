@@ -66,17 +66,20 @@ jobs:
                 "mkdir -p /home/ec2-user/app",
                 "cd /home/ec2-user/app",
                 "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin '"$IMAGE_URL"'",
-                "echo \"version: '3.7'\" > docker-compose.yml",
-                "echo \"services:\" >> docker-compose.yml",
-                "echo \"  web:\" >> docker-compose.yml",
-                "echo \"    image: '"$IMAGE_URL"':latest\" >> docker-compose.yml",
-                "echo \"    ports:\" >> docker-compose.yml",
-                "echo \"      - '3000:3000'\" >> docker-compose.yml",
-                "echo \"    healthcheck:\" >> docker-compose.yml",
-                "echo \"      test: [\\\"CMD\\\", \\\"curl\\\", \\\"-f\\\", \\\"http://localhost:3000/health\\\"]\" >> docker-compose.yml",
-                "echo \"      interval: 30s\" >> docker-compose.yml",
-                "echo \"      timeout: 10s\" >> docker-compose.yml",
-                "echo \"      retries: 3\" >> docker-compose.yml",
+                "cat <<EOF > docker-compose.yml
+                version: \"3.7\"
+                services:
+                  web:
+                    image: \"$IMAGE_URL:latest\"
+                    ports:
+                      - \"3000:3000\"
+                    healthcheck:
+                      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health\"]
+                      interval: 30s
+                      timeout: 10s
+                      retries: 3
+                EOF",
+
                 "sudo docker rmi '"$IMAGE_URL"':latest || true",
                 "sudo /usr/local/bin/docker-compose pull",
                 "sudo /usr/local/bin/docker-compose up -d --force-recreate",
