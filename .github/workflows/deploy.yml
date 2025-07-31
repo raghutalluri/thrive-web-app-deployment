@@ -66,24 +66,17 @@ jobs:
                 "mkdir -p /home/ec2-user/app",
                 "cd /home/ec2-user/app",
                 "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin '"$IMAGE_URL"'",
-                "cat <<EOF > docker-compose.yml
-                version: \"3.7\"
-                services:
-                  web:
-                    image: \"$IMAGE_URL:latest\"
-                    ports:
-                      - \"3000:3000\"
-                    healthcheck:
-                      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:3000/health\"]
-                      interval: 30s
-                      timeout: 10s
-                      retries: 3
-                EOF",
-
                 "sudo docker rmi '"$IMAGE_URL"':latest || true",
-                "sudo /usr/local/bin/docker-compose pull",
-                "sudo /usr/local/bin/docker-compose up -d --force-recreate",
-                "echo \"Docker images with :latest tag:\"",
+                "sudo docker pull '"$IMAGE_URL"':latest",
+                "sudo docker run -d \
+                  --name thrive-web-app \
+                  -p 3000:3000 \
+                  --restart unless-stopped \
+                  --health-cmd="curl -f http://localhost:3000/health\" \
+                  --health-interval=30s \
+                  --health-timeout=10s \
+                  --health-retries=3 \
+                  '"$IMAGE_URL"':latest",
                 "sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep :latest"
               ]
             }' \
