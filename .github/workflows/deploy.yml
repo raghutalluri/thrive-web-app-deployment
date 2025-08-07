@@ -67,7 +67,7 @@ jobs:
                 "cd /home/ec2-user/app",
                 "aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin '"$IMAGE_URL"'",
                 "sudo docker rmi '"$IMAGE_URL"':latest || true",
-                echo"pilling Image : $IMAGE_URL",
+                "echo \"pilling Image : $IMAGE_URL\",
                 "sudo docker pull '"$IMAGE_URL"':latest",
                 "sudo docker run -d --name thrive-web-app -p 3000:3000 --restart unless-stopped --health-cmd=\"curl -f http://localhost:3000/health\" --health-interval=30s --health-timeout=10s --health-retries=3 '"$IMAGE_URL"':latest",
                 "sudo docker images --format '{{.Repository}}:{{.Tag}}' | grep :latest"
